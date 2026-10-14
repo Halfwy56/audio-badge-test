@@ -1,0 +1,15 @@
+$ python tools/audiokit.py gen ... (4 synthetic files)
+written samples/none.wav: 10s @ 16000 Hz, defect=none
+written samples/clip.wav: 10s @ 16000 Hz, defect=clip
+written samples/silence.wav: 10s @ 16000 Hz, defect=silence
+written samples/dc.wav: 10s @ 16000 Hz, defect=dc
+
+$ python tools/audiokit.py check samples/*.wav
+[WARN] clip.wav: 16000 Hz, 10.0 s, peak 0.0 dBFS, rms -4.6 dBFS
+    - клиппинг 18.80% сэмплов — снизить PGA/gain
+[WARN] dc.wav: 16000 Hz, 10.0 s, peak -6.19 dBFS, rms -15.64 dBFS
+    - DC-смещение +0.102 FS — нужен HPF/проверка АЦП
+[OK] none.wav: 16000 Hz, 10.0 s, peak -8.14 dBFS, rms -17.72 dBFS
+[WARN] silence.wav: 16000 Hz, 10.0 s, peak -8.16 dBFS, rms -29.7 dBFS
+    - тишина 95% записи — проверить микрофон/VAD
+exit=1

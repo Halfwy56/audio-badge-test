@@ -1,0 +1,24 @@
+$ python tools/mock_backend.py --fail-after 2 &   # обрыв на 2-м чанке
+$ python tools/audiokit.py upload samples/none.wav
+  sent 65536/320044
+  connection lost (RemoteDisconnected), resume from 65536
+  sent 131072/320044
+  sent 196608/320044
+  sent 262144/320044
+  sent 320044/320044
+{"sha256_ok": true, "bytes": 320044, "stored": "<repo>\\received\\none.wav"}
+exit=0
+
+--- backend log ---
+mock backend on http://127.0.0.1:8799, storing to <repo>\received/
+[backend] "PUT /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49?name=none.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "PUT /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49?name=none.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/complete HTTP/1.1" 200 -
+
+$ cmp samples/none.wav received/none.wav
+identical

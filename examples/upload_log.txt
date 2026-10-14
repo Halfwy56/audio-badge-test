@@ -1,24 +1,133 @@
 $ python tools/mock_backend.py --fail-after 2 &   # обрыв на 2-м чанке
-$ python tools/audiokit.py upload samples/none.wav
+$ python tools/audiokit.py upload samples/*.wav --check
+bad.wav:
+  skipped (check: fail): не удалось прочитать как WAV: файл обрезан или пустой
+clip.wav:
   sent 65536/320044
   connection lost (RemoteDisconnected), resume from 65536
   sent 131072/320044
   sent 196608/320044
   sent 262144/320044
   sent 320044/320044
-{"sha256_ok": true, "bytes": 320044, "stored": "<repo>\\received\\none.wav"}
-exit=0
+  {"sha256_ok": true, "bytes": 320044, "stored": "<repo>\\received\\clip.wav"}
+dc.wav:
+  sent 65536/320044
+  sent 131072/320044
+  sent 196608/320044
+  sent 262144/320044
+  sent 320044/320044
+  {"sha256_ok": true, "bytes": 320044, "stored": "<repo>\\received\\dc.wav"}
+none.wav:
+  sent 65536/320044
+  sent 131072/320044
+  sent 196608/320044
+  sent 262144/320044
+  sent 320044/320044
+  {"sha256_ok": true, "bytes": 320044, "stored": "<repo>\\received\\none.wav"}
+quiet.wav:
+  sent 65536/320044
+  sent 131072/320044
+  sent 196608/320044
+  sent 262144/320044
+  sent 320044/320044
+  {"sha256_ok": true, "bytes": 320044, "stored": "<repo>\\received\\quiet.wav"}
+silence.wav:
+  sent 65536/320044
+  sent 131072/320044
+  sent 196608/320044
+  sent 262144/320044
+  sent 320044/320044
+  {"sha256_ok": true, "bytes": 320044, "stored": "<repo>\\received\\silence.wav"}
+exit=2
 
 --- backend log ---
 mock backend on http://127.0.0.1:8799, storing to <repo>\received/
+[backend] "PUT /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe?name=clip.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "PUT /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe?name=clip.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/complete HTTP/1.1" 200 -
+[backend] "PUT /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff?name=dc.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/complete HTTP/1.1" 200 -
 [backend] "PUT /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49?name=none.wav&size=320044 HTTP/1.1" 200 -
 [backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=0 HTTP/1.1" 200 -
-[backend] "PUT /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49?name=none.wav&size=320044 HTTP/1.1" 200 -
 [backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=65536 HTTP/1.1" 200 -
 [backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=131072 HTTP/1.1" 200 -
 [backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=196608 HTTP/1.1" 200 -
 [backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=262144 HTTP/1.1" 200 -
 [backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/complete HTTP/1.1" 200 -
+[backend] "PUT /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11?name=quiet.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/complete HTTP/1.1" 200 -
+[backend] "PUT /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094?name=silence.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/complete HTTP/1.1" 200 -
 
 $ cmp samples/none.wav received/none.wav
 identical
+
+$ python tools/audiokit.py upload samples/none.wav   # backend остановлен
+exit=0
+
+--- backend log ---
+mock backend on http://127.0.0.1:8799, storing to <repo>\received/
+[backend] "PUT /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe?name=clip.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "PUT /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe?name=clip.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/a441c20963888c17131ea88b393a471f4dad5034a6b9a7fd94f8bc945e00aafe/complete HTTP/1.1" 200 -
+[backend] "PUT /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff?name=dc.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/0dd7724fa5924b8b84f179e89bcbb9e9ed024fb4d14156a4768440db7dc65cff/complete HTTP/1.1" 200 -
+[backend] "PUT /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49?name=none.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/9eb1cdcf9deace7a158d455428ba77a9f7650403bbdc92e720e6d1a92043ed49/complete HTTP/1.1" 200 -
+[backend] "PUT /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11?name=quiet.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/34848f9e85cee4e7dc568d80b5d8b33947372a5dea3b9726f932e00951fdac11/complete HTTP/1.1" 200 -
+[backend] "PUT /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094?name=silence.wav&size=320044 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=0 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=65536 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=131072 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=196608 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/chunk?offset=262144 HTTP/1.1" 200 -
+[backend] "POST /uploads/7d786fadcd056cad55133591cc3f10b3d30b76df205d3a33e7b54209cf2e8094/complete HTTP/1.1" 200 -
+
+$ cmp samples/none.wav received/none.wav
+identical
+
+$ python tools/audiokit.py upload samples/none.wav   # backend остановлен
+none.wav:
+  backend unreachable (URLError: <urlopen error [WinError 10061] Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение>) — upload not started
+exit=2

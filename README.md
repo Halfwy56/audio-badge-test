@@ -5,6 +5,7 @@
 | 01. Таблица устройств и идея продукта | [research/01_devices_and_idea.md](research/01_devices_and_idea.md) |
 | 02. Toolkit для агента | [CLAUDE.md](CLAUDE.md), [.claude/skills/audio-qa/SKILL.md](.claude/skills/audio-qa/SKILL.md), [tools/](tools/) |
 | Пример работы | [examples/check_log.txt](examples/check_log.txt), [examples/upload_log.txt](examples/upload_log.txt) |
+| Тесты | [tests/test_audiokit.py](tests/test_audiokit.py) — `python -m unittest discover -s tests` |
 
 ## 02. Направление и задача
 
@@ -15,13 +16,14 @@
 **Toolkit (минимальный):**
 - `CLAUDE.md` — правила, команды, контракт протокола загрузки;
 - skill `audio-qa` — порядок проверки и таблица «метрика → аппаратная причина → действие» (предметная часть);
-- `tools/audiokit.py` — `gen` (синтетика с дефектами), `check` (метрики и коды возврата 0/1/2, `--json` для агента), `upload` (чанки, докачка, sha256);
-- `tools/mock_backend.py` — заглушка backend с режимом обрыва `--fail-after N`.
+- `tools/audiokit.py` — `gen` (синтетика с дефектами), `check` (метрики и коды возврата 0/1/2, `--json` для агента), `upload` (пачка файлов, чанки, докачка, sha256, `--check` отсеивает негодные);
+- `tools/mock_backend.py` — заглушка backend с режимом обрыва `--fail-after N`;
+- `tests/` — 15 тестов на stdlib `unittest`: каждый дефект генератора, не-WAV вход, стерео/48 кГц, докачка после обрыва, битый `.part`, имя с пробелом и кириллицей, выход за каталог через `name=`, одноимённые файлы, недоступный backend.
 
 ### Почему так, а не готовые инструменты
 | Рассмотрено | Решение |
 |---|---|
-| `soundfile` / `librosa` / `numpy` | Удобнее, но тянут зависимости; для 5 метрик хватает `wave` + `array`. Агенту проще: «запусти скрипт», без установки окружения |
+| `soundfile` / `librosa` / `numpy` | Тянут зависимости; для 5 метрик хватает `wave` + `array`. `numpy` подхватывается, если установлен (часовой файл: 12 с → <1 с), но не обязателен |
 | `ffmpeg` (`astats`, `silencedetect`) | Хорош для ручной проверки, но вывод в stderr плохо парсится; в skill оставлен только для декодирования Opus → WAV |
 | протокол **tus** (tus.io, open-source resumable upload) | Взята идея (offset через HEAD/PUT, PATCH с offset); полный клиент и сервер избыточны для прототипа |
 | Skill-файлы в репозитории Omi (`omi-firmware-patterns`) | Пример того, как оформлять предметное знание о железе для агента; формат — Agent Skills (`SKILL.md` + frontmatter) |
@@ -33,7 +35,8 @@ python tools/audiokit.py gen samples/none.wav --defect none
 python tools/audiokit.py gen samples/clip.wav --defect clip
 python tools/audiokit.py check samples/*.wav
 python tools/mock_backend.py --fail-after 2      # в отдельном терминале
-python tools/audiokit.py upload samples/none.wav
+python tools/audiokit.py upload samples/*.wav --check
+python -m unittest discover -s tests -v
 ```
 
 ## Пример: запрос → инструмент → проверка
@@ -48,15 +51,37 @@ python tools/audiokit.py upload samples/none.wav
 | clip.wav | WARN | клиппинг 18.8 % | gain PDM/PGA завышен |
 | dc.wav | WARN | DC +0.102 FS | нет HPF после децимации |
 | silence.wav | WARN | тишина 95 % | микрофон/PDM clock/mute |
+| quiet.wav | WARN | peak −42 dBFS | микрофон закрыт одеждой/порт |
+| bad.wav (не WAV) | FAIL | — | файл обрезан или пустой |
 
-Затем `upload` при обрыве на 2-м чанке → [examples/upload_log.txt](examples/upload_log.txt): клиент переспросил offset (65536), докачал, `sha256_ok: true`.
+Затем `upload samples/*.wav --check` при обрыве на 2-м чанке → [examples/upload_log.txt](examples/upload_log.txt): `bad.wav` пропущен, на `clip.wav` клиент переспросил offset (65536) и докачал, все пять файлов `sha256_ok: true`; при остановленном backend — одна строка `backend unreachable` и код 2.
 
 **Моя проверка результата:**
 - дефекты заданы генератором заранее — каждый найден, ложных срабатываний на `none.wav` нет;
 - `cmp samples/none.wav received/none.wav` → файлы идентичны;
 - в логе backend 6 чанков вместо 5 — это повтор после обрыва; дублей данных нет (сервер проверяет offset, 409 при несовпадении).
 
-**Что нашлось по ходу (и исправлено):** на Windows backend падал с `FileNotFoundError` — имя `.part` из полного sha256 превышало MAX_PATH (260) в глубоком каталоге. Имя сокращено до 16 символов хэша.
+**Что нашлось по ходу (и исправлено):**
+- на Windows backend падал с `FileNotFoundError` — имя `.part` из полного sha256 превышало MAX_PATH (260) в глубоком каталоге. Имя сокращено до 16 символов хэша;
+- после ревью (см. ниже) `check` падал трейсбеком на не-WAV файле, `upload` — на имени с пробелом и на недоступном backend; битый `.part` на сервере блокировал файл навсегда; `name=../x` уводил запись из каталога; одноимённые файлы перезаписывались. Всё закрыто тестами.
+
+## Ревью и доработка (2026-10-14)
+
+Проверка решения: основной сценарий воспроизведён, затем прогнаны краевые случаи. Найдено и исправлено:
+
+| Было | Стало |
+|---|---|
+| `check` на не-WAV / обрезанном / отсутствующем файле — трейсбек, код 1 | `status: fail`, причина в `issues`, код 2 |
+| Пробел или кириллица в имени файла → `InvalidURL` | имя URL-кодируется; на сервере `unquote` + `basename` |
+| Backend недоступен → трейсбек `URLError` | одна строка `backend unreachable`, код 2 |
+| Битый `.part` на сервере → `sha256_ok: false` навсегда | сервер удаляет `.part` (`reset: true`), клиент один раз повторяет с нуля; есть `DELETE /uploads/{sha}` |
+| `name=../x.wav` записывал файл за пределы `received/` | только базовое имя, иначе 400 |
+| `complete` молча перезаписывал одноимённый файл | другой контент → `name.<sha8>.ext`; тот же — идемпотентно |
+| Skill обещал проверку «пик < −30 dBFS», инструмент её не делал | порог `LOW_PEAK_DBFS` в коде, дефект `quiet` в генераторе, строка в skill |
+| Файл целиком в памяти клиента | потоковый sha256 и чтение чанков с диска |
+| Часовой файл в `check` — 12 с (чистый Python) | с `numpy` <1 с; без него — ~12 с, но без двойного прохода |
+| Тестов нет, логи в `examples/` вставлены руками | 15 тестов `unittest`, логи сняты реальным прогоном |
+| Сообщения в cp1251-консоли Windows — кракозябры | `stdout` переключается в UTF-8 |
 
 ## Аппаратное ограничение: пропускная способность BLE
 
@@ -75,4 +100,4 @@ Omi стримит Opus 16 кГц mono по BLE. Opus для речи — ~16–
 - Backend — заглушка в памяти: состояние теряется при перезапуске, нет авторизации и TLS.
 
 ## Время
-~4 часа. Toolkit и пример выполнялись с помощью Claude Code (агент запускал команды, автор проверял результат).
+~4 часа на исходную версию + ~1,5 часа ревью и доработка. Toolkit, тесты и примеры выполнялись с помощью Claude Code (агент запускал команды, автор проверял результат).
